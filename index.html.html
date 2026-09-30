@@ -1,0 +1,203 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
+<title>H0B0: Proof of Struggle — Day 1</title>
+<style>
+  :root{--bg:#0d1014;--panel:#151a20;--line:#2a333d;--text:#f2f4f5;--muted:#9ca7b2;--good:#b8ff7a;--warn:#ffd36a;--bad:#ff7a7a;--accent:#8fd5ff}
+  *{box-sizing:border-box} html,body{margin:0;height:100%;background:var(--bg);color:var(--text);font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;overflow:hidden}
+  #wrap{height:100%;display:flex;flex-direction:column}
+  #top{display:flex;gap:8px;align-items:center;padding:8px 10px;background:#0a0d10;border-bottom:1px solid var(--line);font-size:12px;white-space:nowrap;overflow:auto}
+  .pill{border:1px solid var(--line);background:var(--panel);padding:6px 8px;border-radius:9px}.sp{color:var(--accent)} .cash{color:var(--good)}
+  #stageWrap{position:relative;flex:1;min-height:0;background:#11151a;display:grid;place-items:center}
+  canvas{width:100%;height:100%;display:block;image-rendering:pixelated;background:#161b20;touch-action:none}
+  #objective{position:absolute;left:10px;top:10px;width:min(330px,calc(100% - 20px));background:rgba(8,10,12,.86);border:1px solid #313a44;border-radius:12px;padding:10px 12px;backdrop-filter:blur(6px);font-size:12px;line-height:1.45;pointer-events:none}
+  #objective b{color:#fff} #objective .tiny{color:var(--muted);margin-top:6px}
+  #toast{position:absolute;left:50%;bottom:120px;transform:translateX(-50%);background:rgba(8,10,12,.95);border:1px solid #39434f;border-radius:999px;padding:8px 14px;font-size:12px;opacity:0;transition:opacity .2s;pointer-events:none;max-width:90%;text-align:center}
+  #dialog{position:absolute;left:50%;bottom:18px;transform:translateX(-50%);width:min(720px,calc(100% - 20px));background:#0c1014f2;border:1px solid #39434f;border-radius:14px;padding:12px;display:none;box-shadow:0 12px 40px #0008}
+  #dialogText{font-size:13px;line-height:1.5;margin-bottom:10px;white-space:pre-line}
+  #choices{display:flex;gap:8px;flex-wrap:wrap}.choice,button{font:inherit;color:var(--text);background:#171d24;border:1px solid #38434f;border-radius:9px;padding:8px 10px;cursor:pointer}.choice:hover,button:hover{background:#202832}
+  #touch{position:absolute;inset:0;pointer-events:none;display:none}
+  .pad{position:absolute;left:16px;bottom:18px;width:146px;height:146px;pointer-events:auto}.btn{position:absolute;width:48px;height:48px;border-radius:14px;background:#10151bcc;border:1px solid #4b5866;color:#fff;display:grid;place-items:center;font-size:20px;user-select:none;-webkit-user-select:none;touch-action:none}.up{left:49px;top:0}.down{left:49px;bottom:0}.left{left:0;top:49px}.right{right:0;top:49px}
+  .act{position:absolute;right:20px;bottom:40px;width:78px;height:78px;border-radius:50%;background:#10151bdd;border:1px solid #5f6e7f;color:#fff;display:grid;place-items:center;font-weight:700;font-size:17px;pointer-events:auto;user-select:none;-webkit-user-select:none;touch-action:none}
+  #start,#finish{position:absolute;inset:0;background:radial-gradient(circle at 50% 40%,#1e262f 0,#0b0e12 60%);display:grid;place-items:center;padding:22px;z-index:5}
+  #finish{display:none;background:#080b0eee}.card{width:min(680px,100%);border:1px solid #38434f;background:#0d1217;border-radius:18px;padding:22px;box-shadow:0 18px 60px #000a}.logo{font-size:clamp(30px,8vw,66px);font-weight:1000;letter-spacing:-4px;margin:0 0 6px}.sub{color:var(--muted);margin:0 0 18px}.manifesto{border-left:3px solid #647488;padding-left:12px;color:#cdd5dc;line-height:1.55;font-size:13px}.row{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}.primary{background:#e8eef3;color:#0b0e12;border-color:#e8eef3;font-weight:800}.small{font-size:11px;color:var(--muted);margin-top:10px;line-height:1.45}
+  #trade{position:absolute;inset:0;background:#090d11ee;display:none;place-items:center;z-index:4;padding:18px}.tradeCard{width:min(620px,100%);background:#0e1318;border:1px solid #39434f;border-radius:16px;padding:16px}.chart{height:190px;border:1px solid #27313a;background:#0a0e12;border-radius:10px;margin:12px 0;position:relative;overflow:hidden}.bar{position:absolute;bottom:10px;width:18px;background:#7f8b97;border-radius:3px 3px 0 0}.tradeButtons{display:flex;gap:10px}.tradeButtons button{flex:1;padding:12px;font-weight:800}.hint{color:var(--muted);font-size:12px}
+  @media (pointer:coarse){#touch{display:block} #objective{max-width:64%;font-size:11px} #dialog{bottom:175px}}
+</style>
+</head>
+<body>
+<div id="wrap">
+  <div id="top">
+    <div class="pill">DAY <b id="day">1</b></div>
+    <div class="pill cash">$ <b id="cash">0</b></div>
+    <div class="pill sp">STRUGGLE <b id="sp">0</b></div>
+    <div class="pill">CANS <b id="cans">0</b>/3</div>
+    <div class="pill">SETUP <b id="setup">NO</b></div>
+    <button id="reset" title="Reset save">RESET</button>
+  </div>
+  <div id="stageWrap">
+    <canvas id="game" width="1200" height="720"></canvas>
+    <div id="objective"></div>
+    <div id="toast"></div>
+    <div id="dialog"><div id="dialogText"></div><div id="choices"></div></div>
+    <div id="trade">
+      <div class="tradeCard">
+        <h2 style="margin:0">Cardboard Terminal</h2>
+        <div class="hint">Fake market. No real money. Predict the next candle.</div>
+        <div class="chart" id="chart"></div>
+        <div id="tradeMsg" class="hint">Round 1/3 — up or down?</div>
+        <div class="tradeButtons"><button id="long">↑ LONG</button><button id="short">↓ SHORT</button></div>
+        <div class="row"><button id="closeTrade">Leave terminal</button></div>
+      </div>
+    </div>
+    <div id="touch">
+      <div class="pad">
+        <div class="btn up" data-k="ArrowUp">▲</div><div class="btn down" data-k="ArrowDown">▼</div><div class="btn left" data-k="ArrowLeft">◀</div><div class="btn right" data-k="ArrowRight">▶</div>
+      </div>
+      <div class="act" id="act">E</div>
+    </div>
+    <div id="start">
+      <div class="card">
+        <div class="logo">H0B0</div>
+        <h2 style="margin:0 0 4px">PROOF OF STRUGGLE — DAY 1</h2>
+        <p class="sub">Mobile-safe prototype. Start with nothing. Survive the alley.</p>
+        <div class="manifesto">No fake utility. No guaranteed returns. No real-money trading in this prototype.<br><br>Walk. Collect cans. Spot the scam. Build the worst trading desk in crypto.</div>
+        <div class="row"><button class="primary" id="play">PLAY</button></div>
+        <div class="small">Desktop: WASD / arrow keys + E. Mobile: on-screen controls. If the ChatGPT preview blocks browser storage, the game still runs; progress just won't persist after closing.</div>
+      </div>
+    </div>
+    <div id="finish">
+      <div class="card" style="text-align:center">
+        <div class="logo">DAY 1</div>
+        <h2>YOU SURVIVED.</h2>
+        <p class="sub">The rat is still alive-ish. The desk works. Somehow.</p>
+        <div id="finishStats" style="font-size:18px;margin:16px 0"></div>
+        <div class="manifesto" style="text-align:left">Next: Shelter → H0B0 Office → Crypto Conference → Wall Street.<br><br>Season rewards will stay fake until the game, anti-cheat and treasury rules are ready.</div>
+        <div class="row" style="justify-content:center"><button id="continue">KEEP ROAMING</button><button id="restart" class="primary">RESTART DAY 1</button></div>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+(() => {
+const canvas=document.getElementById('game'),ctx=canvas.getContext('2d');
+const $=id=>document.getElementById(id);
+const state={x:150,y:480,cash:0,sp:0,cans:0,setup:false,scamDone:false,oldDone:false,tradeDone:false,finished:false,started:false,tradeRounds:0,tradeCorrect:0,collect:{},ratX:120,ratY:510};
+let storageOK=true;
+function loadSave(){try{const raw=localStorage.getItem('hobo_day1');return raw?JSON.parse(raw):null}catch(e){storageOK=false;return null}}
+const saved=loadSave(); if(saved) Object.assign(state,saved);
+const keys={}; let last=performance.now(),dialogOpen=false,toastTimer=null;
+const world={w:1200,h:720};
+const cans=[{id:'c1',x:285,y:585},{id:'c2',x:520,y:430},{id:'c3',x:730,y:605},{id:'c4',x:890,y:355}];
+const cashDrops=[{id:'m1',x:400,y:620,v:2},{id:'m2',x:995,y:590,v:4}];
+const npcs=[
+ {id:'old',x:350,y:300,label:'OLD TIMER'},
+ {id:'bro',x:770,y:280,label:'CRYPTO BRO'},
+ {id:'desk',x:1015,y:420,label:'CARDBOARD DESK'}
+];
+function save(){if(!storageOK)return;try{localStorage.setItem('hobo_day1',JSON.stringify(state));}catch(e){storageOK=false;}}
+function clamp(v,a,b){return Math.max(a,Math.min(b,v));}
+function dist(ax,ay,bx,by){return Math.hypot(ax-bx,ay-by)}
+function toast(t){$('toast').textContent=t;$('toast').style.opacity=1;clearTimeout(toastTimer);toastTimer=setTimeout(()=>$('toast').style.opacity=0,1700)}
+function hud(){ $('cash').textContent=state.cash; $('sp').textContent=state.sp; $('cans').textContent=state.cans; $('setup').textContent=state.setup?'YES':'NO';
+ const steps=[];
+ steps.push((state.cans>=3?'✓':'○')+' Find 3 cans');
+ steps.push((state.oldDone?'✓':'○')+' Help the Old Timer');
+ steps.push((state.scamDone?'✓':'○')+' Survive the 100x pitch');
+ steps.push((state.setup?'✓':'○')+' Build the cardboard terminal ($15)');
+ steps.push((state.tradeDone?'✓':'○')+' Complete 3 fake trades');
+ $('objective').innerHTML='<b>PROOF OF STRUGGLE</b><br>'+steps.join('<br>')+'<div class="tiny">Walk close to people/objects and press <b>E</b>.</div>';
+}
+function openDialog(text,choices){dialogOpen=true;$('dialogText').textContent=text;$('choices').innerHTML='';choices.forEach(c=>{const b=document.createElement('button');b.className='choice';b.textContent=c.text;b.onclick=()=>{closeDialog();c.fn&&c.fn()};$('choices').appendChild(b)});$('dialog').style.display='block'}
+function closeDialog(){dialogOpen=false;$('dialog').style.display='none'}
+function circle(x,y,r,fill,stroke){ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.fillStyle=fill;ctx.fill();if(stroke){ctx.strokeStyle=stroke;ctx.stroke()}}
+function roundRect(x,y,w,h,r,fill,stroke){ctx.beginPath();ctx.roundRect(x,y,w,h,r);ctx.fillStyle=fill;ctx.fill();if(stroke){ctx.strokeStyle=stroke;ctx.stroke()}}
+function drawWorld(){
+ ctx.clearRect(0,0,world.w,world.h);
+ ctx.fillStyle='#20262b';ctx.fillRect(0,0,world.w,world.h);
+ // walls
+ ctx.fillStyle='#34312f';ctx.fillRect(0,0,1200,205); ctx.fillStyle='#262221';ctx.fillRect(0,0,1200,40);
+ for(let i=0;i<16;i++){ctx.fillStyle=i%2?'#403a36':'#37322f';ctx.fillRect(i*80,50+(i%3)*6,68,46)}
+ // wet pavement
+ ctx.fillStyle='#171c20';ctx.fillRect(0,205,1200,515);
+ for(let i=0;i<22;i++){ctx.strokeStyle='rgba(170,190,205,.07)';ctx.beginPath();ctx.moveTo(i*60,205);ctx.lineTo(i*60-150,720);ctx.stroke()}
+ // puddles
+ ctx.fillStyle='rgba(90,125,145,.14)';ctx.beginPath();ctx.ellipse(560,655,180,25,0,0,Math.PI*2);ctx.fill();ctx.beginPath();ctx.ellipse(930,520,110,18,0,0,Math.PI*2);ctx.fill();
+ // alley props
+ ctx.fillStyle='#20262c';ctx.fillRect(70,235,150,120);ctx.fillStyle='#101419';ctx.fillRect(85,255,120,70);ctx.fillStyle='#5a4b3f';ctx.fillRect(90,585,95,70);ctx.fillStyle='#2b2f33';ctx.fillRect(95,572,82,18);
+ // graffiti
+ ctx.font='bold 28px monospace';ctx.fillStyle='#59636c';ctx.fillText('NO 100X',550,145);ctx.font='18px monospace';ctx.fillText('CHECK THE WALLET',515,175);
+ // desk
+ ctx.fillStyle=state.setup?'#735a3e':'#4c4035';ctx.fillRect(965,430,120,18);ctx.fillRect(977,448,15,78);ctx.fillRect(1055,448,15,78);
+ if(state.setup){ctx.fillStyle='#1d2226';ctx.fillRect(990,365,70,60);ctx.strokeStyle='#64717d';ctx.strokeRect(990,365,70,60);ctx.fillStyle='#81b7d3';ctx.fillRect(998,373,54,40);ctx.fillStyle='#64503c';ctx.fillRect(1070,392,28,33)}
+ // NPCs
+ drawOld(350,300); drawBro(770,280);
+ // collectables
+ cans.forEach(c=>{if(!state.collect[c.id]){ctx.fillStyle='#9aa5ae';ctx.fillRect(c.x-7,c.y-13,14,26);ctx.fillStyle='#4d5c68';ctx.fillRect(c.x-7,c.y-7,14,5)}});
+ cashDrops.forEach(m=>{if(!state.collect[m.id]){ctx.fillStyle='#91b56e';ctx.fillRect(m.x-11,m.y-6,22,12);ctx.font='9px monospace';ctx.fillStyle='#182016';ctx.fillText('$',m.x-3,m.y+3)}});
+ // rat
+ state.ratX+=(state.x-28-state.ratX)*.05;state.ratY+=(state.y+16-state.ratY)*.05;drawRat(state.ratX,state.ratY);
+ drawPlayer(state.x,state.y);
+ // proximity labels
+ const p=nearestInteract(); if(p&&dist(state.x,state.y,p.x,p.y)<72){ctx.font='bold 14px monospace';ctx.fillStyle='#fff';ctx.textAlign='center';ctx.fillText('[ E ] '+p.label,p.x,p.y-55);ctx.textAlign='left'}
+}
+function drawPlayer(x,y){
+ // legs + ragged shorts
+ ctx.fillStyle='#6e6b63';ctx.fillRect(x-13,y+15,10,25);ctx.fillRect(x+3,y+15,10,25);ctx.fillStyle='#383b3d';ctx.fillRect(x-17,y+5,34,18);
+ // torso half-human/metal
+ ctx.fillStyle='#7a8b95';ctx.fillRect(x-15,y-18,30,28);ctx.fillStyle='#535d64';ctx.fillRect(x+1,y-18,14,28);
+ // head with dent
+ circle(x,y-36,18,'#9aa0a2','#c4c6c6');ctx.fillStyle='#56616a';ctx.fillRect(x+1,y-52,15,31);circle(x-5,y-38,2.5,'#15191d');circle(x+7,y-38,3.2,'#7fc6e7');
+ ctx.strokeStyle='#3d454b';ctx.beginPath();ctx.moveTo(x-15,y-49);ctx.lineTo(x-3,y-56);ctx.lineTo(x+2,y-50);ctx.stroke(); // dent line
+ ctx.fillStyle='#3f4447';ctx.fillRect(x-13,y-20,8,6);ctx.fillRect(x+7,y-20,8,6);
+}
+function drawRat(x,y){ctx.save();ctx.translate(x,y);ctx.fillStyle='#666';ctx.beginPath();ctx.ellipse(0,0,12,7,0,0,Math.PI*2);ctx.fill();circle(9,-3,5,'#777');circle(11,-4,1.5,'#111');ctx.strokeStyle='#777';ctx.beginPath();ctx.moveTo(-10,1);ctx.quadraticCurveTo(-24,4,-30,10);ctx.stroke();ctx.strokeStyle='#222';ctx.beginPath();ctx.moveTo(7,-7);ctx.lineTo(12,-1);ctx.moveTo(12,-7);ctx.lineTo(7,-1);ctx.stroke();ctx.restore()}
+function drawOld(x,y){ctx.fillStyle='#65584e';ctx.fillRect(x-12,y-10,24,40);circle(x,y-24,13,'#927b68');ctx.fillStyle='#aaa';ctx.fillRect(x-13,y+28,8,22);ctx.fillRect(x+5,y+28,8,22)}
+function drawBro(x,y){ctx.fillStyle='#6a4d7c';ctx.fillRect(x-13,y-11,26,41);circle(x,y-26,13,'#b98b76');ctx.fillStyle='#0c0f12';ctx.fillRect(x-14,y-34,28,7);ctx.font='8px monospace';ctx.fillStyle='#fff';ctx.fillText('100X',x-10,y+13)}
+function nearestInteract(){const arr=[...npcs];for(const c of cans)if(!state.collect[c.id])arr.push({id:c.id,x:c.x,y:c.y,label:'PICK UP CAN'});for(const m of cashDrops)if(!state.collect[m.id])arr.push({id:m.id,x:m.x,y:m.y,label:'PICK UP CASH'});arr.sort((a,b)=>dist(state.x,state.y,a.x,a.y)-dist(state.x,state.y,b.x,b.y));return arr[0]}
+function interact(){if(dialogOpen||$('trade').style.display==='grid')return;const p=nearestInteract();if(!p||dist(state.x,state.y,p.x,p.y)>78){toast('Nothing useful here. The rat disagrees.');return}
+ if(p.id.startsWith('c')){state.collect[p.id]=true;state.cans++;state.cash+=1;state.sp+=5;toast('+1$  +5 STRUGGLE');save();hud();checkFinish();return}
+ if(p.id.startsWith('m')){const m=cashDrops.find(x=>x.id===p.id);state.collect[p.id]=true;state.cash+=m.v;toast('Found $'+m.v+'. Questionable hygiene.');save();hud();return}
+ if(p.id==='old'){
+  if(state.oldDone){openDialog('OLD TIMER: Still alive? Good. That is already alpha.',[{text:'Later.',fn:()=>{}}]);return}
+  if(state.cans<3){openDialog('OLD TIMER: Bring me 3 cans.\nNot glamorous. Neither is survival.',[{text:'I’ll find them.',fn:()=>{}}]);return}
+  openDialog('OLD TIMER: You actually came back.\nHere. $7. Don’t spend it on a 100x thread.',[{text:'Take $7',fn:()=>{state.cash+=7;state.sp+=50;state.oldDone=true;toast('+$7  +50 STRUGGLE');save();hud();checkFinish()}}]);return
+ }
+ if(p.id==='bro'){
+  if(state.scamDone){openDialog('CRYPTO BRO: bro trust me next one is different\n\nRAT: ☠', [{text:'Walk away.',fn:()=>{}}]);return}
+  openDialog('CRYPTO BRO: GUARANTEED 100X.\nSend SOL now. I’ll “whitelist” you.\n\nWhat do you do?',[
+   {text:'A — Send him SOL',fn:()=>{state.cash=Math.max(0,state.cash-2);state.sp+=5;state.scamDone=true;toast('RUGGED. -$2  +5 wisdom');save();hud();checkFinish()}},
+   {text:'B — Check the wallet',fn:()=>{state.sp+=75;state.scamDone=true;toast('Correct. +75 STRUGGLE');save();hud();checkFinish()}},
+   {text:'C — Ask the rat',fn:()=>{state.sp+=25;state.scamDone=true;toast('The rat says “no”. +25 STRUGGLE');save();hud();checkFinish()}}
+  ]);return
+ }
+ if(p.id==='desk'){
+  if(!state.setup){if(state.cash<15){openDialog('CARDBOARD DESK: You need $15 to build the worst terminal in finance.\nYou have $'+state.cash+'.',[{text:'Back to work.',fn:()=>{}}]);return}
+   openDialog('Build the cardboard trading terminal for $15?',[
+    {text:'BUILD IT',fn:()=>{state.cash-=15;state.setup=true;state.sp+=100;toast('Setup built. +100 STRUGGLE');save();hud();checkFinish()}},
+    {text:'Not yet',fn:()=>{}}
+   ]);return
+  }
+  startTrade();
+ }
+}
+function buildChart(){const el=$('chart');el.innerHTML='';let h=50;for(let i=0;i<18;i++){h=clamp(h+(Math.random()-.5)*35,20,160);const b=document.createElement('div');b.className='bar';b.style.left=(12+i*32)+'px';b.style.height=h+'px';el.appendChild(b)}}
+function startTrade(){if(!state.setup)return;$('trade').style.display='grid';state.tradeRounds=0;state.tradeCorrect=0;buildChart();$('tradeMsg').textContent='Round 1/3 — up or down?'}
+function tradePick(dir){if(state.tradeRounds>=3)return;const outcome=Math.random()>.5?'up':'down';state.tradeRounds++;if(dir===outcome){state.tradeCorrect++;state.sp+=20;toast('Nice read. +20 STRUGGLE')}else toast('Market disagreed. No real money lost.');buildChart();if(state.tradeRounds>=3){state.tradeDone=true;state.sp+=40;$('tradeMsg').textContent='Done — '+state.tradeCorrect+'/3 correct. +40 completion bonus.';save();hud();setTimeout(checkFinish,400)}else $('tradeMsg').textContent='Round '+(state.tradeRounds+1)+'/3 — up or down?';}
+function checkFinish(){if(!state.finished&&state.oldDone&&state.scamDone&&state.setup&&state.tradeDone){state.finished=true;save();setTimeout(()=>{ $('finishStats').innerHTML='<span class="cash">$'+state.cash+'</span> &nbsp; <span class="sp">'+state.sp+' STRUGGLE</span>'; $('finish').style.display='grid';},500)}}
+function update(dt){if(!state.started||dialogOpen||$('trade').style.display==='grid'||$('finish').style.display==='grid')return;let dx=0,dy=0;if(keys.ArrowLeft||keys.a)dx--;if(keys.ArrowRight||keys.d)dx++;if(keys.ArrowUp||keys.w)dy--;if(keys.ArrowDown||keys.s)dy++;if(dx||dy){const len=Math.hypot(dx,dy);state.x=clamp(state.x+dx/len*190*dt,30,1170);state.y=clamp(state.y+dy/len*190*dt,230,680)}}
+function loop(t){const dt=Math.min(.033,(t-last)/1000);last=t;update(dt);drawWorld();requestAnimationFrame(loop)}
+addEventListener('keydown',e=>{keys[e.key]=true;if((e.key==='e'||e.key==='E'||e.key===' ')&&!e.repeat)interact();if(e.key==='Escape')closeDialog()});addEventListener('keyup',e=>keys[e.key]=false);
+$('act').addEventListener('pointerdown',e=>{e.preventDefault();interact()});document.querySelectorAll('.btn').forEach(b=>{const k=b.dataset.k;b.addEventListener('pointerdown',e=>{e.preventDefault();keys[k]=true});['pointerup','pointercancel','pointerout'].forEach(ev=>b.addEventListener(ev,e=>{e.preventDefault();keys[k]=false}))});
+$('play').onclick=()=>{state.started=true;$('start').style.display='none';hud();save()};
+$('reset').onclick=()=>{if(confirm('Reset Day 1 progress?')){try{if(storageOK)localStorage.removeItem('hobo_day1')}catch(e){} location.reload()}};
+$('long').onclick=()=>tradePick('up');$('short').onclick=()=>tradePick('down');$('closeTrade').onclick=()=>{$('trade').style.display='none';checkFinish()};
+$('continue').onclick=()=>{$('finish').style.display='none'};$('restart').onclick=()=>{try{if(storageOK)localStorage.removeItem('hobo_day1')}catch(e){} location.reload()};
+if(state.finished){$('finishStats').innerHTML='<span class="cash">$'+state.cash+'</span> &nbsp; <span class="sp">'+state.sp+' STRUGGLE</span>'}
+hud();requestAnimationFrame(loop);
+})();
+</script>
+</body>
+</html>
